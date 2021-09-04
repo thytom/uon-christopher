@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "name": "uon-christopher",
+  "main": "./src/app.js",
+  "scripts": {
+    "start": "node ./src/app.js"
+  },
+  "devDependencies": {
+    "eslint": "^7.6.0"
+  }
+}
