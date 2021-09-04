@@ -1,11 +1,16 @@
 {
   "version": "0.1.0",
   "name": "uon-christopher",
-  "main": "./src/app.js",
+  "main": "./src/app.ts",
   "scripts": {
-    "start": "node ./src/app.js"
+    "start": "ts-node ./src/app.ts"
   },
   "devDependencies": {
     "eslint": "^7.6.0"
+  },
+  "dependencies": {
+    "discord.js": "^13.1.0",
+    "sqlite3": "^5.0.2",
+    "ts-node": "^10.2.1"
   }
 }
