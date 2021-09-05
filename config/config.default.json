@@ -1,0 +1,9 @@
+{
+	"auth" : {
+		"token" : ""
+	},
+	"serverInfo" : {
+		"serverID" : ""
+	},
+	"databaseLocation" : "data/register.db"
+}
