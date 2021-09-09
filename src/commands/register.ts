@@ -15,58 +15,51 @@ const command : Command = {
 	disable: false,
 	name: 'register',
 	description: 'Register yourself to the server.',
-	initHooks: [
-		setupDatabase,
-	],
 	options: [
 		{
-			name:'name',
+			name:'full-name',
 			description:'Your full name, as the university would know it.',
 			type: 'STRING',
 			required: true
 		}
 	],
+	initHooks: [
+		setupDatabase,
+	],
+	defaultPermission: false,
+	permissions:['limbo'],
+	lockToChannels:['foyer'],
 	execute: (interaction:Discord.CommandInteraction, args) => {
 		// Command requires that the user has no roles
-		if(hasNoRoles(interaction.member as Discord.GuildMember)) {
-			const name = args.get('name').value;
+		const name = args.get('full-name').value;
 
-			new DatabaseAccessor(config.databaseLocation).querySQL(`SELECT * FROM Students WHERE fullName='${name}'`)
-			.then((result:any[]) => { // Confirm that there's a valid entry
-				const firstAvailableEntry = result.filter(r => r.discordID == null)[0];
-				if(!firstAvailableEntry) {
-					interactionReply(interaction, responses.notfound, true);
-					throw new Error(`User ${interaction.member.user.username} attempted to register as ${name} but no valid entry found.`);
-				} else {
-					return firstAvailableEntry;
-				}
-			}).then(async function (entry) {
-				const registerID = entry.registerID;
-				const fullName = entry.fullName;
-				const uID = interaction.member.user.id;
-				const roles = interaction.guild.roles.cache.filter(r => r.name === entry.role);
+		new DatabaseAccessor(config.databaseLocation).querySQL(`SELECT * FROM Students WHERE fullName='${name}'`)
+		.then((result:any[]) => { // Confirm that there's a valid entry
+			const firstAvailableEntry = result.filter(r => r.discordID == null)[0];
+			if(!firstAvailableEntry) {
+				interactionReply(interaction, responses.notfound, true);
+				throw new Error(`User ${interaction.member.user.username} attempted to register as ${name} but no valid entry found.`);
+			} else {
+				return firstAvailableEntry;
+			}
+		}).then(async function (entry) {
+			const registerID = entry.registerID;
+			const fullName = entry.fullName;
+			const uID = interaction.member.user.id;
+			const roles = interaction.guild.roles.cache.filter(r => r.name === entry.role);
 
-				await (interaction.member as Discord.GuildMember).edit({
-					roles: roles,
-					nick: fullName
-				});
-
-				await new DatabaseAccessor(config.databaseLocation).execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
-
-				interactionReply(interaction, `Welcome ${fullName}!`, true);
-			}).catch(err => {
-				console.log(err);
+			await (interaction.member as Discord.GuildMember).edit({
+				roles: roles,
+				nick: fullName
 			});
-		} else {
-			// Respond saying they don't have permissions to use this
-			interactionReply(interaction, responses.insufficientperms, true);
-		}
-	}
-}
 
-function hasNoRoles(user : Discord.GuildMember) : boolean {
-	return (user.roles as Discord.GuildMemberRoleManager)
-	.cache.map(r => r.name).length <= 1;
+			await new DatabaseAccessor(config.databaseLocation).execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
+
+			interactionReply(interaction, `Welcome ${fullName}!`, true);
+		}).catch(err => {
+			console.log(err);
+		});
+	}
 }
 
 module.exports = {

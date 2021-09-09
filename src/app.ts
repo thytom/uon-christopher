@@ -11,12 +11,15 @@ const startupHookHandler = new StartupHookHandler();
 const localCommands = getLocalCommands();
 
 type Command = {
-	disable?:boolean,
-	name:string,
-	description:string,
-	options?:Discord.ApplicationCommandOption[],
-	initHooks?: startupHook[],
-	execute:(interaction: any, args?: any) => void
+	disable?:boolean, 									// Whether to disable the command outright
+	name:string, 										// Name of the command
+	description:string, 								// Description of the command
+	options?:Discord.ApplicationCommandOption[], 		// List of options for the command
+	defaultPermission:boolean, 							// Is this command available to everyone?
+	lockToChannels:string[], 							// If [], can be run from any channel. If non-empty, channel specific
+	permissions?:string[], 								// If defaultPermission is true, this acts as a blacklist. If false, this acts as a whitelist
+	initHooks?: startupHook[],  						// Anything that needs to be done before the command is ready to use
+	execute:(interaction: any, args?: any) => void 		// The command itself
 };
 
 export type {Command};
@@ -42,12 +45,29 @@ function getLocalCommands(): Discord.Collection<string, Command> {
 
 function validateGuildCommands(guild : Discord.Guild, commands: Discord.Collection<string, Command>) {
 	// Clear all commands from guild
-	guild.commands.set([]);
-	guild.commands.set(Array.from(commands.values()));
-	console.log("Command list:");
-	commands.forEach(cmd => {
-		console.log(`${cmd.name} - ${cmd.description}`);
+	// guild.commands.set([]);
+	// guild.commands.set(Array.from(commands.values()));
+	// console.log("Command list:");
+	// commands.forEach(cmd => {
+	// 	console.log(`${cmd.name} - ${cmd.description}`);
+	// });
+	guild.commands.set([]); // Wipe commands
+	commands.forEach(async (cmd) => {
+		const command = await guild.commands.create(cmd);
+		if(cmd.permissions) {
+			const permissions : Discord.ApplicationCommandPermissionData[] = cmd.permissions.map(p => {
+				const roleID = guild.roles.cache.find(r => r.name == p).id;
+				return {
+					id:roleID,
+					type:'ROLE',
+					permission:!cmd.defaultPermission,
+				}
+			})
+			command.permissions.set({permissions});
+		}
 	});
+
+	console.log("Updating command permissions...");
 }
 
 client.on('ready', async () => {
@@ -68,11 +88,17 @@ client.on('interactionCreate', async (interaction) => {
 		return;
 
 	const {commandName, options} = interaction;
-	const cmd = localCommands.get(commandName)
+	const cmd = localCommands.get(commandName);
 
-	if(cmd) {
-		cmd.execute(interaction, options);
-	} 
+	if(cmd && interaction.channel.type == 'GUILD_TEXT'
+	  && (cmd.lockToChannels == [] || cmd.lockToChannels.includes(interaction.channel.name))) {
+			cmd.execute(interaction, options);
+	  } else {
+		  interaction.reply({
+			  content:"Sorry, you can't execute this here...",
+			  ephemeral:true
+		  });
+	  }
 })
 
 client.login(config.auth.token);
