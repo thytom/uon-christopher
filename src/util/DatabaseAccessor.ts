@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3'
 
 // Time to wait before timing out.
-const queryTimeout = 5;
+const queryTimeout = 2;
 
 // Singleton interface for accessing the sqlite database.
 export class DatabaseAccessor {

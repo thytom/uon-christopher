@@ -2,8 +2,14 @@ import * as Discord from 'discord.js'
 import type {Command} from '../app'
 import {setupDatabase} from '../util/RegisterDatabase'
 import {DatabaseAccessor} from '../util/DatabaseAccessor'
+import {interactionReply} from '../util/InteractionUtils'
 
 import config from '../../config/config.json'
+
+const responses = {
+	notfound: "Sorry, I can't find you on my list. Please double check your name or use @mentor for help.",
+	insufficientperms: "Sorry, you don't have the permission to use this command."
+}
 
 const command : Command = {
 	disable: false,
@@ -20,46 +26,47 @@ const command : Command = {
 			required: true
 		}
 	],
-	execute: (interaction, args) => {
+	execute: (interaction:Discord.CommandInteraction, args) => {
 		// Command requires that the user has no roles
-		if(hasNoRoles(interaction.member)) {
+		if(hasNoRoles(interaction.member as Discord.GuildMember)) {
 			const name = args.get('name').value;
-			var registerID = null;
-			var uID = null;
 
 			DatabaseAccessor.awaitConnection(config.databaseLocation)
-			.then(db => {
-				const val = db.querySQL(`SELECT * FROM Students WHERE fullName='${name}'`);
+			.then(db => { // Perform database query
+				const result = db.querySQL(`SELECT * FROM Students WHERE fullName='${name}'`);
 				db.close();
-				return val;
-			}).then(result => {
-				if(result[0]){
-					registerID = result[0].registerID;
-					uID = interaction.member.id;
-					interaction.reply({
-						content:`Welcome, ${name}!`,
-						ephemeral:true
-					});
-					return DatabaseAccessor.awaitConnection(config.databaseLocation);
+				return result;
+			}).then(result => { // Confirm that there's a valid entry
+				const firstAvailableEntry = result.filter(r => r.discordID == null)[0];
+				if(!firstAvailableEntry) {
+					interactionReply(interaction, responses.notfound, true);
+					throw new Error(`User ${interaction.member.user.username} attempted to register as ${name} but no valid entry found.`);
 				} else {
-					interaction.reply({
-						content:"Sorry, I can't find you on my list. Please double check your name or use @mentor for help.",
-						ephemeral:true
-					});
-					throw new Error("User not found.");
+					return firstAvailableEntry;
 				}
-			}).then(db => {
-				db.execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
+			}).then(async function (entry) {
+				const db = await DatabaseAccessor.awaitConnection(config.databaseLocation);
+				const registerID = entry.registerID;
+				const fullName = entry.fullName;
+				const uID = interaction.member.user.id;
+				const roles = interaction.guild.roles.cache.filter(r => r.name === entry.role);
+
+				await (interaction.member as Discord.GuildMember).edit({
+					roles: roles,
+					nick: fullName
+				});
+
+				await db.execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
 				db.close();
+
+				interactionReply(interaction, `Welcome ${fullName}!`, true);
+				interaction.deleteReply();
 			}).catch(err => {
 				console.log(err);
 			});
 		} else {
 			// Respond saying they don't have permissions to use this
-			interaction.reply({
-				content:"Sorry, you don't have the permission to use this command.",
-				ephemeral:true
-			});
+			interactionReply(interaction, responses.insufficientperms, true);
 		}
 	}
 }
