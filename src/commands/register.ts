@@ -31,12 +31,8 @@ const command : Command = {
 		if(hasNoRoles(interaction.member as Discord.GuildMember)) {
 			const name = args.get('name').value;
 
-			DatabaseAccessor.awaitConnection(config.databaseLocation)
-			.then(db => { // Perform database query
-				const result = db.querySQL(`SELECT * FROM Students WHERE fullName='${name}'`);
-				db.close();
-				return result;
-			}).then(result => { // Confirm that there's a valid entry
+			new DatabaseAccessor(config.databaseLocation).querySQL(`SELECT * FROM Students WHERE fullName='${name}'`)
+			.then((result:any[]) => { // Confirm that there's a valid entry
 				const firstAvailableEntry = result.filter(r => r.discordID == null)[0];
 				if(!firstAvailableEntry) {
 					interactionReply(interaction, responses.notfound, true);
@@ -45,7 +41,6 @@ const command : Command = {
 					return firstAvailableEntry;
 				}
 			}).then(async function (entry) {
-				const db = await DatabaseAccessor.awaitConnection(config.databaseLocation);
 				const registerID = entry.registerID;
 				const fullName = entry.fullName;
 				const uID = interaction.member.user.id;
@@ -56,11 +51,9 @@ const command : Command = {
 					nick: fullName
 				});
 
-				await db.execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
-				db.close();
+				await new DatabaseAccessor(config.databaseLocation).execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
 
 				interactionReply(interaction, `Welcome ${fullName}!`, true);
-				interaction.deleteReply();
 			}).catch(err => {
 				console.log(err);
 			});

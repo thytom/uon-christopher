@@ -20,23 +20,19 @@ CREATE TABLE IF NOT EXISTS Students (
 `;
 
 function setupDatabase() {
-	DatabaseAccessor.awaitConnection(config.databaseLocation)
-	.then(db => {
-		db.execSQL(Init_SQL);
-		db.close();
+	new DatabaseAccessor(config.databaseLocation).execSQL(Init_SQL)
+	.catch(err => {
+		console.log("Error initialising database: " + err);
 	});
 }
 
 /** DANGEROUS FUNCTION DO NOT RUN UNLESS YOU'RE SURE.
 Wipes the entire student register*/
 function wipeRegister() {
-	DatabaseAccessor.awaitConnection(config.databaseLocation)
-	.then(db => {
-		db.execSQL("DELETE FROM Students");
-		db.close();
-	}).catch(err => {
-		console.log(err);
-	})
+	new DatabaseAccessor(config.databaseLocation).execSQL("DELETE FROM Students")
+	.catch(err => {
+		console.log("Error wiping database: " + err);
+	});
 }
 
 module.exports = {
