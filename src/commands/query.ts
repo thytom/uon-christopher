@@ -50,11 +50,11 @@ const command : Command = {
 		var sqlQuery = "";
 		switch(sc) {
 			case 'id': 
-				const user = args.getUser('user');
+				const user : Discord.User = args.getUser('user');
 				sqlQuery = `discordID = '${user.id}'`;
 				break;
 			case 'name': 
-				const name = args.getString('name');
+				const name : string = args.getString('name');
 				sqlQuery = `fullName LIKE '${name}'`;
 				break;
 		}
