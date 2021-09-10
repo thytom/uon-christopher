@@ -55,22 +55,31 @@ const command : Command = {
 				break;
 			case 'name': 
 				const name : string = args.getString('name');
-				sqlQuery = `fullName LIKE '${name}'`;
+				sqlQuery = `fullName LIKE '%${name}%'`;
 				break;
 		}
 
 		const fullQuery = `SELECT * FROM Students where ${sqlQuery}`;
 
 		new DatabaseAccessor(config.databaseLocation).querySQL(fullQuery)
-		.then(result => {
-			const stringList = result.map(r => {
+		.then(async (result) => {
+			const stringList : Discord.EmbedFieldData[] = result.map(r => {
 				const present = !(r.discordID == null);
-				return `name: ${r.fullName}\npresent: ${present}`;
-			})
+				return {
+					name: `${r.fullName}${(present) ? ' (' + r.discordID + ')' : ''}`,
+					value: `${(present) ? 'Present' : 'Not Present'}`
+				} 
+			});
 			if(stringList.length > 0) {
-				interactionReply(interaction, stringList.join('\n'), false);
+				const response : Discord.MessageEmbed = new Discord.MessageEmbed()
+				.setTitle("Query Results")
+				.setFields(stringList);
+				interaction.reply(new Discord.MessagePayload(interaction, {
+					content: `${interaction.member.user.username} made request \`${fullQuery}\``,
+					embeds: [ response ],
+				}))
 			} else {
-				interactionReply(interaction, "No results found.", false);
+				interactionReply(interaction, `No results found for query \`${fullQuery}\``, false);
 			}
 		}).catch(err => {
 			interactionReply(interaction, "Sorry, something went wrong.", true);
@@ -78,6 +87,7 @@ const command : Command = {
 		})
 	}
 }
+
 
 module.exports = {
 	command
