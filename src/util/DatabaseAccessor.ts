@@ -25,6 +25,22 @@ export class DatabaseAccessor {
 		})
 	}
 
+	runSQL(sql:string) : Promise<number> {
+		return new Promise((resolve, reject) => {
+			const db = new sqlite3.Database(this.dbFilePath, (err : Error) => {
+				if(err)
+					reject(err);
+			});
+			db.run(sql, function (err : Error) {
+				if(err) {
+					reject(err);
+				} else {
+					resolve(this.changes);
+				}
+			}).close();
+		})
+	}
+
 	execSQL(sql:string) : Promise<void> {
 		return new Promise((resolve, reject) => {
 			const db = new sqlite3.Database(this.dbFilePath, (err : Error) => {

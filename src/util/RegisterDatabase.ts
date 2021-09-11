@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS Students (
 	discordID 	VARCHAR(255),
 	roles 		TEXT DEFAULT 'Student'
 );
+
+CREATE TABLE IF NOT EXISTS Config (
+	name VARCHAR(255) PRIMARY KEY,
+	value TEXT NOT NULL
+);
 `;
 
 function setupDatabase() {
