@@ -3,7 +3,8 @@
   "name": "uon-christopher",
   "main": "./src/app.ts",
   "scripts": {
-    "dev": "ts-node ./src/app.ts"
+    "dev": "ts-node ./src/app.ts",
+	"reg_bulk_import": "./scripts/import_list.py"
   },
   "devDependencies": {
     "@types/sqlite3": "^3.1.7",
