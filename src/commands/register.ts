@@ -47,7 +47,7 @@ const command : Command = {
 			const registerID = entry.registerID;
 			const fullName = entry.fullName;
 			const uID = interaction.member.user.id;
-			const dbRoles = entry.roles.split('|');
+			const dbRoles = entry.roles.split(',');
 
 			const roles = buildRoleList(interaction.guild.roles.cache, dbRoles);
 
