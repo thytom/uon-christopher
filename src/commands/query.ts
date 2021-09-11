@@ -65,9 +65,12 @@ const command : Command = {
 		.then(async (result) => {
 			const stringList : Discord.EmbedFieldData[] = result.map(r => {
 				const present = !(r.discordID == null);
+				const uname = (present) ? 'Discord: <@!' + r.discordID + '>' : '';
 				return {
-					name: `${r.fullName}${(present) ? ' (' + r.discordID + ')' : ''}`,
-					value: `${(present) ? 'Present' : 'Not Present'}`
+					name: `${r.fullName}`,
+					value: `${uname}
+Roles: \`${r.roles}\`
+Present: \`${(present) ? 'Yes' : 'No'}\``
 				} 
 			});
 			if(stringList.length > 0) {
