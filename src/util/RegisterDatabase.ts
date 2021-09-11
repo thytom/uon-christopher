@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS Students (
 	registerID 	INTEGER PRIMARY KEY,
 	fullName 	VARCHAR(255) NOT NULL,
 	discordID 	VARCHAR(255),
-	role 		VARCHAR(255) DEFAULT 'Student'
+	roles 		TEXT DEFAULT 'Student'
 );
 `;
 
