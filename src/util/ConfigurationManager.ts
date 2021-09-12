@@ -54,10 +54,3 @@ export class ConfigurationManager {
 		return tmp;
 	}
 }
-
-new ConfigurationManager().fetch('registerData.listenChannel')
-.then(result => console.log(result))
-.catch(err => console.log(err));
-
-new ConfigurationManager().set('registerData.listenChannel', 'mentor-room')
-.catch(err=>console.log(err))
