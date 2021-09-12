@@ -8,8 +8,14 @@ export class ConfigurationManager {
 	public async fetch(configurableOption : string):Promise<string> {
 		const defaultValue = ConfigurationManager.jsonResolve(config, configurableOption);
 
-		const dbQueryResult = await new DatabaseAccessor(config.databaseLocation)
-		.querySQL(`SELECT * FROM Config WHERE name='${configurableOption}'`);
+		var dbQueryResult = [];
+
+		try {
+			dbQueryResult = await new DatabaseAccessor(config.databaseLocation)
+			.querySQL(`SELECT * FROM Config WHERE name='${configurableOption}'`);
+		} catch (err) {
+			console.log("Error fetching from database: " + err);
+		}
 
 		if(dbQueryResult.length == 0) {
 			return defaultValue;
