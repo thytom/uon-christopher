@@ -5,4 +5,6 @@ token.json
 config/config.json
 database.db
 
+data/
+
 node_modules
