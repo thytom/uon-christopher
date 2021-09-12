@@ -3,7 +3,9 @@ import fs from 'fs';
 import StartupHookHandler from './util/StartupHookHandler'
 import type {startupHook} from './util/StartupHookHandler'
 
-import config from '../config/config.json';
+import {ConfigurationManager} from './util/ConfigurationManager';
+
+const configHandler = new ConfigurationManager();
 
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES] });
 
@@ -72,11 +74,9 @@ function validateGuildCommands(guild : Discord.Guild, commands: Discord.Collecti
 
 client.on('ready', async () => {
 	console.log("Bot successfully connected.");
-	const guild = client.guilds.cache.get(config.serverInfo.serverID);
+	const guild = client.guilds.cache.get(await configHandler.fetch("serverInfo.serverID"));
 	console.log("Listening to server: " + guild.name);
 
-	console.log("Running pre-startup hooks...");
-	startupHookHandler.runStartupHooks();
 	console.log("Refreshing guild commands...");
 	validateGuildCommands(guild, localCommands);
 
@@ -101,4 +101,12 @@ client.on('interactionCreate', async (interaction) => {
 	  }
 })
 
-client.login(config.auth.token);
+console.log("Running pre-startup hooks...");
+startupHookHandler.runStartupHooks();
+
+configHandler.fetch("auth.token").then(token => {
+	client.login(token);
+}).catch(err => {
+	console.log("Could not login: " + err);
+})
+

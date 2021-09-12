@@ -3,7 +3,10 @@ import type {Command} from '../app'
 import {setupDatabase} from '../util/RegisterDatabase'
 import {DatabaseAccessor} from '../util/DatabaseAccessor'
 
-import config from '../../config/config.json'
+import {ConfigurationManager} from '../util/ConfigurationManager';
+
+const configHandler = new ConfigurationManager();
+
 import {interactionReply} from '../util/InteractionUtils'
 
 const command : Command = {
@@ -61,7 +64,10 @@ const command : Command = {
 
 		const fullQuery = `SELECT * FROM Students where ${sqlQuery}`;
 
-		new DatabaseAccessor(config.databaseLocation).querySQL(fullQuery)
+		configHandler.fetch("databaseLocation")
+		.then(dbLocation => {
+			return new DatabaseAccessor(dbLocation).querySQL(fullQuery);
+		})
 		.then(async (result) => {
 			const stringList : Discord.EmbedFieldData[] = result.map(r => {
 				const present = !(r.discordID == null);

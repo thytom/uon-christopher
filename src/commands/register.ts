@@ -4,8 +4,11 @@ import {setupDatabase} from '../util/RegisterDatabase'
 import {DatabaseAccessor} from '../util/DatabaseAccessor'
 import {interactionReply} from '../util/InteractionUtils'
 
-import config from '../../config/config.json'
+import { ConfigurationManager } from '../util/ConfigurationManager'
+
 import {CommandInteraction, GuildMember, Collection, Snowflake, Role} from 'discord.js'
+
+const configHandler = new ConfigurationManager();
 
 const responses = {
 	notfound: "Sorry, I can't find you on my list. Please double check your name or use @mentor for help.",
@@ -34,7 +37,11 @@ const command : Command = {
 		// Command requires that the user has no roles
 		const name = args.get('full-name').value;
 
-		new DatabaseAccessor(config.databaseLocation).querySQL(`SELECT * FROM Students WHERE fullName='${name}'`)
+		configHandler.fetch("databaseLocation")
+		.then(dbLocation => {
+			return new DatabaseAccessor(dbLocation)
+			.querySQL(`SELECT * FROM Students WHERE fullName='${name}'`)
+		})
 		.then((result:any[]) => { // Confirm that there's a valid entry
 			const firstAvailableEntry = result.filter(r => r.discordID == null)[0];
 			if(!firstAvailableEntry) {
@@ -56,7 +63,7 @@ const command : Command = {
 				nick: fullName
 			});
 
-			await new DatabaseAccessor(config.databaseLocation)
+			await new DatabaseAccessor(await configHandler.fetch("databaseLocation"))
 			.execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
 
 			interactionReply(interaction, `Welcome ${fullName}!`, true);

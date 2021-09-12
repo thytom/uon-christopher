@@ -1,6 +1,8 @@
 import {DatabaseAccessor} from './DatabaseAccessor'
 
-import config from '../../config/config.json'
+import {ConfigurationManager} from './ConfigurationManager';
+
+const configHandler = new ConfigurationManager();
 
 export {setupDatabase, wipeRegister};
 
@@ -25,7 +27,10 @@ CREATE TABLE IF NOT EXISTS Config (
 `;
 
 function setupDatabase() {
-	new DatabaseAccessor(config.databaseLocation).execSQL(Init_SQL)
+	configHandler.fetch("databaseLocation")
+	.then(dblocation => {
+		new DatabaseAccessor(dblocation).execSQL(Init_SQL);
+	})
 	.catch(err => {
 		console.log("Error initialising database: " + err);
 	});
@@ -34,7 +39,10 @@ function setupDatabase() {
 /** DANGEROUS FUNCTION DO NOT RUN UNLESS YOU'RE SURE.
 Wipes the entire student register*/
 function wipeRegister() {
-	new DatabaseAccessor(config.databaseLocation).execSQL("DELETE FROM Students")
+	configHandler.fetch("databaseLocation")
+	.then(dblocation => {
+		new DatabaseAccessor(dblocation).execSQL("DELETE FROM Students")
+	})
 	.catch(err => {
 		console.log("Error wiping database: " + err);
 	});
