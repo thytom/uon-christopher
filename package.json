@@ -4,14 +4,14 @@
   "main": "./src/app.ts",
   "scripts": {
     "dev": "ts-node ./src/app.ts",
-	"reg_bulk_import": "./scripts/import_list.py"
+    "reg_bulk_import": "./scripts/import_list.py"
   },
   "devDependencies": {
     "@types/sqlite3": "^3.1.7",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
     "eslint": "^7.6.0",
-    "sqlite3": "^5.0.2",
+    "sqlite3": "^4.2.0",
     "typescript": "^4.4.2"
   },
   "dependencies": {
