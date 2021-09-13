@@ -3,9 +3,7 @@ import type {Command} from '../app'
 import {setupDatabase} from '../util/RegisterDatabase'
 import {DatabaseAccessor} from '../util/DatabaseAccessor'
 
-import {ConfigurationManager} from '../util/ConfigurationManager';
-
-const configHandler = new ConfigurationManager();
+import * as ConfigurationManager from '../util/ConfigurationManager';
 
 import {interactionReply} from '../util/InteractionUtils'
 
@@ -64,7 +62,7 @@ const command : Command = {
 
 		const fullQuery = `SELECT * FROM Students where ${sqlQuery}`;
 
-		configHandler.fetch("databaseLocation")
+		ConfigurationManager.fetch("databaseLocation")
 		.then(dbLocation => {
 			return new DatabaseAccessor(dbLocation).querySQL(fullQuery);
 		})
