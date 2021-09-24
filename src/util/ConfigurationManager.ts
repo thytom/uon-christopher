@@ -17,11 +17,11 @@ export class ConfigurationManager {
 
 	private async loadFiles():Promise<any>{
 		var files = {};
-		const filenames = fs.readdirSync(ConfigurationManager.configurationDirectory)
+		const filenames = fs.readdirSync(__dirname + '/' + ConfigurationManager.configurationDirectory)
 		.filter(file => !file.endsWith('template.json')) // Filter out default files
 		.map((f:String) => f.replace('.json', ''))
 		for(const file of filenames) {
-			files[file] = require(ConfigurationManager.configurationDirectory + file);
+			files[file] = require(__dirname + '/' + ConfigurationManager.configurationDirectory + file);
 		}
 		return files;
 	}
@@ -32,7 +32,7 @@ export class ConfigurationManager {
 		var dbQueryResult = [];
 
 		try {
-			dbQueryResult = await new DatabaseAccessor('../../' + databaseLocation)
+			dbQueryResult = await new DatabaseAccessor(__dirname + '/../../' + databaseLocation)
 			.querySQL(`SELECT * FROM Config WHERE name='${configurableOption}'`);
 		} catch (err) {
 			console.log("Error fetching from database: " + err);
@@ -45,12 +45,16 @@ export class ConfigurationManager {
 		}
 	}
 
-	// TODO: 
-	// 	- Set should only work on public values
-	//  - Confirm a value actually exists before trying to set it
 	public async set(configurableOption : string, value:string):Promise<void> {
-		const sqlupdate = `
-		UPDATE Config SET value='${value}' WHERE name='${configurableOption}';`;
+		// Resolve the option. If it's private, don't update it.
+		try {
+			const files = await this.files;
+			await jsonResolve(files, configurableOption, false);
+		} catch (err) {
+			throw new Error("Cannot modify private or non-existent option.");
+		}
+
+		const sqlupdate = `UPDATE Config SET value='${value}' WHERE name='${configurableOption}';`;
 		const sqlnew = `INSERT INTO Config (name, value) VALUES ('${configurableOption}', '${value}');`;
 		const changes = await new DatabaseAccessor(databaseLocation)
 		.runSQL(sqlupdate);
