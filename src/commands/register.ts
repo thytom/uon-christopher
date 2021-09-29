@@ -4,7 +4,7 @@ import {setupDatabase} from '../util/RegisterDatabase'
 import {DatabaseAccessor} from '../util/DatabaseAccessor'
 import {interactionReply} from '../util/InteractionUtils'
 
-import * as ConfigurationManager from '../util/ConfigurationManager'
+import {ConfigurationManager} from '../util/ConfigurationManager'
 
 import {CommandInteraction, GuildMember, Collection, Snowflake, Role} from 'discord.js'
 
@@ -35,7 +35,7 @@ const command : Command = {
 		// Command requires that the user has no roles
 		const name = args.get('full-name').value;
 
-		ConfigurationManager.fetch("databaseLocation")
+		new ConfigurationManager().fetch("private.databaseLocation")
 		.then((dbLocation:string) => {
 			return new DatabaseAccessor(dbLocation)
 			.querySQL(`SELECT * FROM Students WHERE fullName='${name}'`)
@@ -61,7 +61,7 @@ const command : Command = {
 				nick: fullName
 			});
 
-			await new DatabaseAccessor(await ConfigurationManager.fetch("databaseLocation"))
+			await new DatabaseAccessor(await new ConfigurationManager().fetch("private.databaseLocation"))
 			.execSQL(`UPDATE Students SET discordID=${uID} where registerID=${registerID}`);
 
 			interactionReply(interaction, `Welcome ${fullName}!`, true);

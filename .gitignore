@@ -3,7 +3,7 @@ todo.md
 concept.md
 token.json
 config/*.json
-!config/*.default.json
+!config/*.template.json
 database.db
 
 data/

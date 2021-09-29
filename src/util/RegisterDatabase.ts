@@ -1,6 +1,6 @@
 import {DatabaseAccessor} from './DatabaseAccessor'
 
-import * as ConfigurationManager from './ConfigurationManager';
+import {ConfigurationManager} from './ConfigurationManager';
 
 export {setupDatabase, wipeRegister};
 
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS Config (
 `;
 
 function setupDatabase() {
-	ConfigurationManager.fetch("databaseLocation")
+	new ConfigurationManager().fetch("private.databaseLocation", true)
 	.then((dblocation:string) => {
 		new DatabaseAccessor(dblocation).execSQL(Init_SQL);
 	})
@@ -37,7 +37,7 @@ function setupDatabase() {
 /** DANGEROUS FUNCTION DO NOT RUN UNLESS YOU'RE SURE.
 Wipes the entire student register*/
 function wipeRegister() {
-	ConfigurationManager.fetch("databaseLocation")
+	new ConfigurationManager().fetch("private.databaseLocation", true)
 	.then((dblocation:string) => {
 		new DatabaseAccessor(dblocation).execSQL("DELETE FROM Students")
 	})
